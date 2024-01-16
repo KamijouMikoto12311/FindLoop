@@ -27,18 +27,6 @@ CHx,CHy,CHz=[],[],[]
 
 warnings.filterwarnings("ignore")
 
-def readfile(file):
-    for line in file:
-        row=re.split(r"\s+",line)
-        if row[0]=='P':
-            Px.append(float(row[1]))
-            Py.append(float(row[2]))
-            Pz.append(float(row[3]))
-        elif row[0]=='C' or row[0]=='H':
-            CHx.append(float(row[1]))
-            CHy.append(float(row[2]))
-            CHz.append(float(row[3]))
-
 
 @nb.njit
 def fold_back(Px,Py,Pz,CHx,CHy,CHz):                        #calculate the coordiante of non-continuous
