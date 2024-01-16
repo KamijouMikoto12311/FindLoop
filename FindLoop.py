@@ -1,5 +1,4 @@
 #!/opt/homebrew/bin/
-#dfgdgdfgd
 import re
 import numba as nb
 import numpy as np
