@@ -1,5 +1,5 @@
 #!/opt/homebrew/bin/
-import re
+import MDAnalysis as mda
 import numba as nb
 import numpy as np
 import sys
@@ -8,6 +8,9 @@ import warnings
 NUMCH=10658                                    #total number of lipid head
 NP=int(sys.argv[2])                            #number of polymer chains
 DP=int(sys.argv[1])                            #number of monomer on each chain
+XML=sys.argv[3]
+DCD=sys.argv[4]
+OUTFILE="FindLoop.dat"
 ADSDIS=2.5                                     #max adsorption distance
 RANGE=2.0                                      #neighbor lipid on xy plane
 LX=80
@@ -15,88 +18,87 @@ LY=80
 LZ=40
 
 
-RANGESQ=RANGE**2
+RANGESQ=RANGE**2       ####################
+ADSDISSQ=ADSDIS
 NUMP=NP*DP
 HALFLX=LX/2
 HALFLY=LY/2
 HALFLZ=LZ/2
-
-Px,Py,Pz=[],[],[]
-CHx,CHy,CHz=[],[],[]
+tot_train,tot_tail,tot_loops=0,0,0
+frame=0
 
 
 warnings.filterwarnings("ignore")
 
 
 @nb.njit
-def fold_back(Px,Py,Pz,CHx,CHy,CHz):                        #calculate the coordiante of non-continuous
-    for i in range(0,len(Px)):
-        Px[i]=(Px[i]+HALFLX)%LX-HALFLX
-        Py[i]=(Py[i]+HALFLY)%LY-HALFLY
-        Pz[i]=(Pz[i]+HALFLZ)%LZ-HALFLZ
-    for i in range(0,len(CHx)):
-        CHx[i]=(CHx[i]+HALFLX)%LX-HALFLX
-        CHy[i]=(CHy[i]+HALFLY)%LY-HALFLY
-        CHz[i]=(CHz[i]+HALFLZ)%LZ-HALFLZ
+def fold_back(P):
+        P[0]=(P[0]+HALFLX)%LX-HALFLX
+        P[1]=(P[1]+HALFLY)%LY-HALFLY
+        P[2]=(P[2]+HALFLZ)%LZ-HALFLZ
 
 
 @nb.njit
-def find(Px,Py,Pz,Cx,Cy,Cz):
-    train,tail,loops=[],[],[]
+def find(Pxyz,CHxyz):
+    train,tail,loops=0,0,0
+    dis=[]
     
-    for loop in range(1,int(len(Px)/NUMP)+1):                       #one loop means one frame in traj.xyz
-        dis=[]
-        train.append(0)
-        tail.append(0)
-        loops.append(0)
+    for i in range(0,NUMP):                    #for each monomer, find the closest lipid head and save the distance
+        distancesq=[]
+        for j in range(0,NUMCH):
+            rsq=(Pxyz[i][0]-CHxyz[j][0])**2+(Pxyz[i][1]-CHxyz[j][1])**2
+            if rsq <= RANGESQ:
+                distancesq.append(rsq+(Pxyz[i][2]-CHxyz[j][2])**2)
+        dis.append(min(distancesq))
         
-        for i in range(NUMP*(loop-1),NUMP*loop):                    #for each monomer, find the closest lipid head and save the distance
-            distancesq=[]
-            for j in range(NUMCH*(loop-1),NUMCH*loop):
-                rsq=(Cx[j]-Px[i])**2+(Cy[j]-Py[i])**2
-                if rsq <= RANGESQ:
-                    distancesq.append(rsq+(Cz[j]-Pz[i])**2)
-            dis.append(min(distancesq))
-            
-        for i in range(0,NP):
-            chain=dis[i*DP:(i+1)*DP]
-            binchain=[1 if x < ADSDIS else 0 for x in chain]
-            train[loop-1]+=sum(binchain)
-            for j in range(0,DP):
-                if binchain[j]==1:
-                    tail[loop-1]+=j
-                    break
-            for j in range(DP-1,-1,-1):
-                if binchain[j]==1:
-                    tail[loop-1]+=(DP-1)-j
-                    break
-            loops[loop-1]=NP*DP-train[loop-1]-tail[loop-1]
-            
+    for i in range(0,NP):
+        chain=dis[i*DP:(i+1)*DP]
+        binchain=[1 if x < ADSDISSQ else 0 for x in chain]
+        train+=sum(binchain)
+        for j in range(0,DP):
+            if binchain[j]==1:
+                tail+=j
+                break
+        for j in range(DP-1,-1,-1):
+            if binchain[j]==1:
+                tail+=(DP-1)-j
+                break
+        loops=NP*DP-train-tail
     return train,tail,loops
 
 
-@nb.njit
-def Calc_aver_data(train,tail,loops):
-    aver_train=np.average(train)
-    aver_tail=np.average(tail)
-    aver_loops=np.average(loops)
-    return aver_train,aver_tail,aver_loops
 
+U=mda.Universe(XML,DCD)
+P=U.select_atoms("type P")
+C=U.select_atoms("type C")
+H=U.select_atoms("type H")
+CH=C+H
 
-with open("traj.xyz","r") as file:
-    readfile(file)
-            
-if len(Px)/NUMP!=1001:
-    raise Exception("INPUT FILE IS INVALID")
-
-fold_back(Px,Py,Pz,CHx,CHy,CHz)
-
-train,tail,loops=find(Px,Py,Pz,CHx,CHy,CHz)
-
-aver_train,aver_tail,aver_loops=Calc_aver_data(train,tail,loops)
-
-with open("FindLoop.dat","w") as f:
-    f.write(f"train_average: {aver_train}\ntail_average:  {aver_tail}\nloops_average: {aver_loops}\n\n")
+with open(OUTFILE,"w") as f:
     f.write(f" frame \t train \t tail \t loops \n")
-    for i in range(0,1001):
-        f.write(f"{i+1:^7}\t{train[i]:^7}\t{tail[i]:^6}\t{loops[i]:^7}\n")
+
+for ts in U.trajectory[1:]:
+    Pxyz=P.positions
+    CHxyz=CH.positions
+    for i in range(0,NUMP):
+        fold_back(Pxyz[i])
+    for i in range(0,NUMCH):
+        fold_back(CHxyz[i])
+        
+    train,tail,loops=find(Pxyz,CHxyz)
+    tot_train+=train
+    tot_tail+=tail
+    tot_loops+=loops
+    
+    frame+=1
+    
+    with open(OUTFILE,"a") as f:
+        f.write(f"{frame:^7}\t{train:^7}\t{tail:^6}\t{loops:^7}\n")
+
+
+aver_train=tot_train/frame
+aver_tail=tot_tail/frame
+aver_loops=tot_loops/frame
+
+with open(OUTFILE,"a") as f:
+    f.write(f"train_average: {aver_train}\ntail_average: {aver_tail}\nloops_average: {aver_loops}\n\n")
