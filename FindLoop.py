@@ -15,6 +15,7 @@ EPSPH = float(sys.argv[7])
 XML = sys.argv[8]  # name of xml file
 DCD = sys.argv[9]  # name of dcd file
 OUTFILE = "FindLoopEnergy.dat"  # name of output file
+ADSPENER=-2.0
 RCUT = 2.5
 
 
@@ -75,7 +76,7 @@ def find(Pxyz, Cxyz, Hxyz):
 
     for i in range(0, NP):
         chain = P_potential[i * DP : (i + 1) * DP]
-        binchain = [1 if x < -2.0 else 0 for x in chain]
+        binchain = [1 if x < ADSPENER else 0 for x in chain]
         train += sum(binchain)
         for j in range(0, DP):
             if binchain[j] == 1:
