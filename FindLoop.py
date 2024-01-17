@@ -6,11 +6,11 @@ import sys
 import warnings
 
 NUMCH=10658                                    #total number of lipid head
-NP=int(sys.argv[2])                            #number of polymer chains
 DP=int(sys.argv[1])                            #number of monomer on each chain
-XML=sys.argv[3]
-DCD=sys.argv[4]
-OUTFILE="FindLoop.dat"
+NP=int(sys.argv[2])                            #number of polymer chains
+XML=sys.argv[3]                                #name of xml file
+DCD=sys.argv[4]                                #name of dcd file
+OUTFILE="FindLoop.dat"                         #name of output file
 ADSDIS=2.5                                     #max adsorption distance
 RANGE=2.0                                      #neighbor lipid on xy plane
 LX=80
