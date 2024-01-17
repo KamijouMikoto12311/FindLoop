@@ -5,19 +5,19 @@ import numpy as np
 import sys
 import warnings
 
-NUMCH = 10658  # total number of lipid head
 DP = int(sys.argv[1])  # number of monomer on each chain
 NP = int(sys.argv[2])  # number of polymer chains
-XML = sys.argv[3]  # name of xml file
-DCD = sys.argv[4]  # name of dcd file
-EPSPC = 1.0
-EPSPH = 0.8
+LX = sys.argv[3]
+LY = sys.argv[4]
+LZ = sys.argv[5]
+EPSPC = sys.argv[6]
+EPSPH = sys.argv[7]
+XML = sys.argv[8]  # name of xml file
+DCD = sys.argv[9]  # name of dcd file
 OUTFILE = "FindLoopEnergy.dat"  # name of output file
 ADSDIS = 2.5  # max adsorption distance
-LX = 80
-LY = 80
-LZ = 40
 RCUT = 2.5
+
 
 ADSDISSQ = ADSDIS**2
 RCUTSQ = RCUT**2
