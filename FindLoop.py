@@ -43,11 +43,9 @@ def find(Pxyz, CHxyz):
     train, tail, loops = 0, 0, 0
     dis = []
 
-    for i in range(
-        0, NUMP
-    ):  # for each monomer, find the closest lipid head and save the distance
+    for i in range(0, NUMP):  # find the closest lipid head and save the distance
         distancesq = []
-        for j in range(0, NUMCH):
+        for j in range(0, len(CHxyz)):
             rsq = (Pxyz[i][0] - CHxyz[j][0]) ** 2 + (Pxyz[i][1] - CHxyz[j][1]) ** 2
             if rsq <= RANGESQ:
                 distancesq.append(rsq + (Pxyz[i][2] - CHxyz[j][2]) ** 2)
