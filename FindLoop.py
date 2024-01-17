@@ -7,11 +7,11 @@ import warnings
 
 DP = int(sys.argv[1])  # number of monomer on each chain
 NP = int(sys.argv[2])  # number of polymer chains
-LX = sys.argv[3]
-LY = sys.argv[4]
-LZ = sys.argv[5]
-EPSPC = sys.argv[6]
-EPSPH = sys.argv[7]
+LX = float(sys.argv[3])
+LY = float(sys.argv[4])
+LZ = float(sys.argv[5])
+EPSPC = float(sys.argv[6])
+EPSPH = float(sys.argv[7])
 XML = sys.argv[8]  # name of xml file
 DCD = sys.argv[9]  # name of dcd file
 OUTFILE = "FindLoopEnergy.dat"  # name of output file
