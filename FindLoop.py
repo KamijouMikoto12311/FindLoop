@@ -15,11 +15,9 @@ EPSPH = float(sys.argv[7])
 XML = sys.argv[8]  # name of xml file
 DCD = sys.argv[9]  # name of dcd file
 OUTFILE = "FindLoopEnergy.dat"  # name of output file
-ADSDIS = 2.5  # max adsorption distance
 RCUT = 2.5
 
 
-ADSDISSQ = ADSDIS**2
 RCUTSQ = RCUT**2
 NUMP = NP * DP
 HALFLX = LX / 2
