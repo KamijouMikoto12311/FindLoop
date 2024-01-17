@@ -5,7 +5,6 @@ import numpy as np
 import sys
 import warnings
 
-NUMCH = 10658  # total number of lipid head
 DP = int(sys.argv[1])  # number of monomer on each chain
 NP = int(sys.argv[2])  # number of polymer chains
 XML = sys.argv[3]  # name of xml file
@@ -81,7 +80,7 @@ for ts in U.trajectory[1:]:
     CHxyz = CH.positions
     for i in range(0, NUMP):
         fold_back(Pxyz[i])
-    for i in range(0, NUMCH):
+    for i in range(0, len(CHxyz)):
         fold_back(CHxyz[i])
 
     train, tail, loops = find(Pxyz, CHxyz)
