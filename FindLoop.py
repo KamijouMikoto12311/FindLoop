@@ -13,7 +13,7 @@ LZ = float(sys.argv[5])
 XML = sys.argv[6]  # name of xml file
 DCD = sys.argv[7]  # name of dcd file
 OUTFILE = "FindLoopDistance.dat"  # name of output file
-ADSDIS = 2.5  # max adsorption distance
+ADSDIS = 1.25  # max adsorption distance
 RCUT = 2.5
 RANGE = RCUT
 
