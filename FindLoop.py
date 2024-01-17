@@ -7,14 +7,15 @@ import warnings
 
 DP = int(sys.argv[1])  # number of monomer on each chain
 NP = int(sys.argv[2])  # number of polymer chains
-XML = sys.argv[3]  # name of xml file
-DCD = sys.argv[4]  # name of dcd file
-OUTFILE = "FindLoop.dat"  # name of output file
+LX = float(sys.argv[3])
+LY = float(sys.argv[4])
+LZ = float(sys.argv[5])
+XML = sys.argv[6]  # name of xml file
+DCD = sys.argv[7]  # name of dcd file
+OUTFILE = "FindLoopDistance.dat"  # name of output file
 ADSDIS = 2.5  # max adsorption distance
-RANGE = 2.0  # neighbor lipid on xy plane
-LX = 80
-LY = 80
-LZ = 40
+RCUT = 2.5
+RANGE = RCUT
 
 
 RANGESQ = RANGE**2
