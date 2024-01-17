@@ -14,8 +14,9 @@ EPSPC = float(sys.argv[6])
 EPSPH = float(sys.argv[7])
 XML = sys.argv[8]  # name of xml file
 DCD = sys.argv[9]  # name of dcd file
+
 OUTFILE = "FindLoopEnergy.dat"  # name of output file
-ADSPENER=-2.0
+ADSPENER = -2.0
 RCUT = 2.5
 
 
