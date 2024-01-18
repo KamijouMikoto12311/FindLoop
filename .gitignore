@@ -4,4 +4,5 @@ cpt.0200000000.xml
 cpt.0410000000.xml
 FindLoop.dat
 FindLoopEnergy.dat
+FindLoopDistance.dat
 trial.py
