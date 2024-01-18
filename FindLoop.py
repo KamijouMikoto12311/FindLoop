@@ -1,6 +1,7 @@
 #!/opt/homebrew/bin/
 import MDAnalysis as mda
 import numba as nb
+import numpy as np
 import sys
 import warnings
 
@@ -23,7 +24,9 @@ NUMP = NP * DP
 HALFLX = LX / 2
 HALFLY = LY / 2
 HALFLZ = LZ / 2
-tot_train, tot_tail, tot_loops = 0, 0, 0
+tot_train = []
+tot_tail = []
+tot_loops = []
 frame = 0
 
 
@@ -66,6 +69,30 @@ def find(Pxyz, CHxyz):
     return train, tail, loops
 
 
+@nb.jit
+def Calc_dat(tot_train, tot_tail, tot_loops):
+    aver_train = np.average(tot_train)
+    aver_tail = np.average(tot_tail)
+    aver_loops = np.average(tot_loops)
+    max_train = np.max(tot_train)
+    max_tail = np.max(tot_tail)
+    max_loops = np.max(tot_loops)
+    min_train = np.min(tot_train)
+    min_tail = np.min(tot_tail)
+    min_loops = np.min(tot_loops)
+    return (
+        aver_train,
+        aver_tail,
+        aver_loops,
+        max_train,
+        max_tail,
+        max_loops,
+        min_train,
+        min_tail,
+        min_loops,
+    )
+
+
 U = mda.Universe(XML, DCD)
 P = U.select_atoms("type P")
 C = U.select_atoms("type C")
@@ -73,7 +100,7 @@ H = U.select_atoms("type H")
 CH = C + H
 
 with open(OUTFILE, "w") as f:
-    f.write(f" frame \t train \t tail \t loops \n")
+    f.write(f" frame \t train \t tail \t loops \t rate \n")
 
 for ts in U.trajectory[1:]:
     Pxyz = P.positions
@@ -84,21 +111,36 @@ for ts in U.trajectory[1:]:
         fold_back(CHxyz[i])
 
     train, tail, loops = find(Pxyz, CHxyz)
-    tot_train += train
-    tot_tail += tail
-    tot_loops += loops
-
+    tot_train.append(train)
+    tot_tail.append(tail)
+    tot_loops.append(loops)
     frame += 1
 
     with open(OUTFILE, "a") as f:
-        f.write(f"{frame:^7}\t{train:^7}\t{tail:^6}\t{loops:^7}\n")
+        f.write(
+            f"{frame:^7}\t{train:^7}\t{tail:^6}\t{loops:^7}\t{(tail+loops)/(DP*NP):^6}\n"
+        )
 
+(
+    aver_train,
+    aver_tail,
+    aver_loops,
+    max_train,
+    max_tail,
+    max_loops,
+    min_train,
+    min_tail,
+    min_loops,
+) = Calc_dat(tot_train, tot_tail, tot_loops)
 
-aver_train = tot_train / frame
-aver_tail = tot_tail / frame
-aver_loops = tot_loops / frame
 
 with open(OUTFILE, "a") as f:
     f.write(
-        f"train_average: {aver_train}\ntail_average: {aver_tail}\nloops_average: {aver_loops}\n\n"
+        f"train_average: {aver_train:^7}\ttail_average: {aver_tail:^8}\tloops_average: {aver_loops:^7}\tDisorption rate: {(aver_loops+aver_tail)/(DP*NP)}\n"
+    )
+    f.write(
+        f"train_maximum: {max_train:^7}\ttail_maximum: {max_tail:^8}\tloops_maximum: {max_loops:^7}\n"
+    )
+    f.write(
+        f"train_minimum: {min_train:^7}\ttail_minimum: {min_tail:^8}\tloops_minimum: {min_loops:^7}\n"
     )
