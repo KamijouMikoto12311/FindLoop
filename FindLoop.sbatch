@@ -9,6 +9,9 @@
 #SBATCH --mail-type=ALL             # email notification
 #SBATCH --mail-user=user@mail.com
 
+## params needed for analyze
+DP=61
+NP=3
 ## list of files needed for the run & run cmd ##
 
 PY_FILE=FindLoop.py
@@ -16,7 +19,7 @@ PY_FILE=FindLoop.py
 ## log & err files ##
 LOG_FILE=/scratch/${SLURM_JOB_ID}-${SLURM_JOB_NODELIST}.log
 ERR_FILE=/scratch/${SLURM_JOB_ID}-${SLURM_JOB_NODELIST}.err
-echo "Job submitted from ${SLURM_SUBMIT_DIR} starts at ${SLURM_JOB_NODELIST} since `date`" >> $LOG_FILE
+echo "Job submitted from ${SLURM_SUBMIT_DIR} starts at ${SLURM_JOB_NODELIST} since $(date)" >>$LOG_FILE
 
 ## unique local working dir under /scratch of the compute node ##
 SLURM_COMPUTE_DIR=/scratch/${SLURM_JOB_NAME}-${SLURM_JOB_ID}
@@ -27,14 +30,14 @@ rsync -alu ${SLURM_SUBMIT_HOST}:${SLURM_SUBMIT_DIR}/* $SLURM_COMPUTE_DIR
 
 ## run the simulation under compute dir ##
 cd $SLURM_COMPUTE_DIR
-python3 ${PY_FILE} > run.log
+python3 ${PY_FILE} ${DP} ${NP} >run.log
 rm -rf loop.dat
 for f in [sr]*/; do
   tail -n 1000 "$f"/FindLoopDistance.dat >>loop.dat
 done
 
 ## save complete time ##
-echo "Job ends at `date`" >> $LOG_FILE
+echo "Job ends at $(date)" >>$LOG_FILE
 
 ## sync data back ##
 rsync -alu $LOG_FILE $ERR_FILE $SLURM_COMPUTE_DIR/loop.dat ${SLURM_SUBMIT_HOST}:${SLURM_SUBMIT_DIR}
